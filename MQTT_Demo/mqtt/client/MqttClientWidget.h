@@ -1,5 +1,5 @@
-#ifndef WIDGET_H
-#define WIDGET_H
+#ifndef MQTTCLIENTWIDGET_H
+#define MQTTCLIENTWIDGET_H
 
 #include <QWidget>
 #include <QTimer>
@@ -10,21 +10,21 @@
 
 
 namespace Ui {
-class Widget;
+class MqttClientWidget;
 }
 
-class Widget : public QWidget
+class MqttClientWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit Widget(QWidget *parent = 0);
-    ~Widget();
+    explicit MqttClientWidget(QWidget *parent = 0);
+    ~MqttClientWidget();
 
 private slots:
     void on_pbConnectToHost_clicked();
 
-    void on_pcSubscribeTopic_clicked();
+    void on_pbSubscribeTopic_clicked();
 
     void on_pbUnsubscribeTopic_clicked();
 
@@ -43,8 +43,20 @@ private slots:
 
     void on_pushButton_reset_clicked();
 
+    void on_leHostaddr_editingFinished();
+
+    void on_lePort_editingFinished();
+
+    void on_leClientId_editingFinished();
+
+    void on_leUsernam_editingFinished();
+
+    void on_lePassword_editingFinished();
+
+    void on_leKeepAlive_editingFinished();
+
 private:
-    Ui::Widget *ui;
+    Ui::MqttClientWidget *ui;
     QMQTT::Client* m_client;
     QTimer* m_timer1s;
     QTimer* m_autoSendTimer;   // Timer used to auto send data
@@ -82,7 +94,10 @@ private:
     // Reset pub/sub count
     void resetPubSubCnt();
 
+    // Update MQTT server setting to ini file
+    void updateServerSettingToIniFile();
+
     QString get_cfg_str(const QString& str);
 };
 
-#endif // WIDGET_H
+#endif // MQTTCLIENTWIDGET_H

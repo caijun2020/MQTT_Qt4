@@ -17,16 +17,16 @@ INSTALLS += target
 
 SOURCES += \
         FileLog.cpp \
-        main.cpp \
-        widget.cpp
+        MqttClientWidget.cpp \
+        main.cpp
 
 HEADERS += \
         FileLog.h \
-        QtBaseType.h \
-        widget.h
+        MqttClientWidget.h \
+        QtBaseType.h
 
 FORMS += \
-        widget.ui
+    MqttClientWidget.ui
 
 CONFIG += mobility
 MOBILITY = 

@@ -1,14 +1,14 @@
-#include "widget.h"
-#include "ui_widget.h"
+#include "MqttClientWidget.h"
+#include "ui_MqttClientWidget.h"
 #include <QMessageBox>
 #include <QFile>
 #include <QDateTime>
 #include "QtBaseType.h"
 
 
-Widget::Widget(QWidget *parent) :
+MqttClientWidget::MqttClientWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::Widget),
+    ui(new Ui::MqttClientWidget),
     widgetFontType("Arial"),
     widgetFontSize(16),
     logFile(new FileLog),
@@ -46,9 +46,12 @@ Widget::Widget(QWidget *parent) :
 
     // Reset count
     resetPubSubCnt();
+
+    // Set Window Title
+    setWindowTitle(tr("MQTT Client"));
 }
 
-Widget::~Widget()
+MqttClientWidget::~MqttClientWidget()
 {
     if(m_client->isConnectedToHost())
     {
@@ -68,11 +71,11 @@ Widget::~Widget()
     delete m_autoSendTimer;
 }
 
-void Widget::initWidgetFont()
+void MqttClientWidget::initWidgetFont()
 {
 }
 
-void Widget::initWidgetStyle()
+void MqttClientWidget::initWidgetStyle()
 {
     ui->cbxQosSubscribe->addItem("0");
     ui->cbxQosSubscribe->addItem("1");
@@ -90,7 +93,7 @@ void Widget::initWidgetStyle()
     ui->label_status->setText("");
 }
 
-void Widget::loadSettingFromIniFile()
+void MqttClientWidget::loadSettingFromIniFile()
 {
     // Load Font type and size
     currentSetting->beginGroup("SystemSetting");
@@ -208,7 +211,7 @@ void Widget::loadSettingFromIniFile()
     currentSetting->endGroup();
 }
 
-QString Widget::get_cfg_str(const QString &str)
+QString MqttClientWidget::get_cfg_str(const QString &str)
 {
     std::string rawstr = str.trimmed().toStdString();
     int index = rawstr.find("=") + 1;
@@ -222,7 +225,7 @@ QString Widget::get_cfg_str(const QString &str)
     return NULL;
 }
 
-void Widget::updateLogData(QString logStr)
+void MqttClientWidget::updateLogData(QString logStr)
 {
     QDateTime time = QDateTime::currentDateTime();
     QString timeStr = time.toString("[yyyy-MM-dd hh:mm:ss:zzz] ");
@@ -233,7 +236,7 @@ void Widget::updateLogData(QString logStr)
     logFile->addLogToFile(logStr);
 }
 
-void Widget::on_pbConnectToHost_clicked()
+void MqttClientWidget::on_pbConnectToHost_clicked()
 {
     if(m_client->isConnectedToHost() == false)
     {
@@ -264,7 +267,7 @@ void Widget::on_pbConnectToHost_clicked()
     updateConnectionStatus();
 }
 
-void Widget::on_pcSubscribeTopic_clicked()
+void MqttClientWidget::on_pbSubscribeTopic_clicked()
 {
     if(m_client->isConnectedToHost())
     {
@@ -275,11 +278,14 @@ void Widget::on_pcSubscribeTopic_clicked()
         if(ui->cbxSubscribedTopic->findText(topic) < 0)
         {
             ui->cbxSubscribedTopic->addItem(topic);
+
+            // Set new add topic active in comboBox
+            ui->cbxSubscribedTopic->setCurrentIndex(ui->cbxSubscribedTopic->count() - 1);
         }
     }
 }
 
-void Widget::on_pbUnsubscribeTopic_clicked()
+void MqttClientWidget::on_pbUnsubscribeTopic_clicked()
 {
     if(m_client->isConnectedToHost())
     {
@@ -288,36 +294,36 @@ void Widget::on_pbUnsubscribeTopic_clicked()
     }
 }
 
-void Widget::on_pbClearRecv_clicked()
+void MqttClientWidget::on_pbClearRecv_clicked()
 {
     ui->teRecvData->clear();
 }
 
-void Widget::on_pbClearPublish_clicked()
+void MqttClientWidget::on_pbClearPublish_clicked()
 {
     ui->tePublicData->clear();
 }
 
-void Widget::on_pbPublishTopic_clicked()
+void MqttClientWidget::on_pbPublishTopic_clicked()
 {
     if(m_client->isConnectedToHost())
     {
-        QMQTT::Message msg(0, ui->lePublicTopic->text(), QByteArray(ui->tePublicData->toPlainText().toStdString().c_str()), ui->cbxQosPublish->currentIndex());
+        QMQTT::Message msg(0, ui->lePublishTopic->text(), QByteArray(ui->tePublicData->toPlainText().toStdString().c_str()), ui->cbxQosPublish->currentIndex());
         m_client->publish(msg);
         txPacketCnt++;
         txTotalBytesSize += QByteArray(ui->tePublicData->toPlainText().toStdString().c_str()).length();
     }
 }
 
-void Widget::slot_mqtt_recvived(const QMQTT::Message &msg)
+void MqttClientWidget::slot_mqtt_recvived(const QMQTT::Message &msg)
 {
-    ui->teRecvData->append("【主题】：" + msg.topic());
-    ui->teRecvData->append("【数据】：" + QString(msg.payload()));
+    ui->teRecvData->append("[Topic]:" + msg.topic());
+    ui->teRecvData->append("[Data]:" + QString(msg.payload()));
     rxPacketCnt++;
     rxTotalBytesSize += msg.payload().length();
 }
 
-void Widget::updateUI()
+void MqttClientWidget::updateUI()
 {
     static uint32_t lastRxPacketCnt = 0;
     static uint32_t lastTxPacketCnt = 0;
@@ -335,23 +341,23 @@ void Widget::updateUI()
     lastTxPacketCnt = txPacketCnt;
 }
 
-void Widget::autoPublishData()
+void MqttClientWidget::autoPublishData()
 {
     on_pbPublishTopic_clicked();
 }
 
-void Widget::updateConnectionStatus()
+void MqttClientWidget::updateConnectionStatus()
 {
     if(m_client->isConnectedToHost())
     {
-        ui->pbConnectToHost->setText("断开连接");
+        ui->pbConnectToHost->setText(tr("Disconnect"));
 
         // Update Status Color
         ui->label_status->setStyleSheet(BG_COLOR_GREEN);
     }
     else
     {
-        ui->pbConnectToHost->setText("连接");
+        ui->pbConnectToHost->setText(tr("Connect"));
 
         // Update Status Color
         ui->label_status->setStyleSheet(BG_COLOR_RED);
@@ -360,7 +366,7 @@ void Widget::updateConnectionStatus()
     }
 }
 
-void Widget::on_checkBox_autoSend_clicked(bool checked)
+void MqttClientWidget::on_checkBox_autoSend_clicked(bool checked)
 {
     if(checked)
     {
@@ -372,15 +378,77 @@ void Widget::on_checkBox_autoSend_clicked(bool checked)
     }
 }
 
-void Widget::on_pushButton_reset_clicked()
+void MqttClientWidget::on_pushButton_reset_clicked()
 {
     resetPubSubCnt();
 }
 
-void Widget::resetPubSubCnt()
+void MqttClientWidget::resetPubSubCnt()
 {
     txPacketCnt = 0;
     rxPacketCnt = 0;
     txTotalBytesSize = 0;
     rxTotalBytesSize = 0;
+}
+
+void MqttClientWidget::updateServerSettingToIniFile()
+{
+    currentSetting->beginGroup("NetworkSetting");
+
+    currentSetting->setValue("ServerIP", m_serverIP);
+    currentSetting->setValue("Port", m_serverPort);
+    currentSetting->setValue("ClientID", m_clientID);
+    currentSetting->setValue("UserName", m_userName);
+    currentSetting->setValue("Password", m_password);
+    currentSetting->setValue("KeepAliveSecond", m_keepAliveSecond);
+
+    currentSetting->endGroup();
+}
+
+void MqttClientWidget::on_leHostaddr_editingFinished()
+{
+    m_serverIP = ui->leHostaddr->text();
+
+    // Update to ini file
+    updateServerSettingToIniFile();
+}
+
+void MqttClientWidget::on_lePort_editingFinished()
+{
+    m_serverPort = ui->lePort->text().toInt();
+
+    // Update to ini file
+    updateServerSettingToIniFile();
+}
+
+void MqttClientWidget::on_leClientId_editingFinished()
+{
+    m_clientID = ui->leClientId->text();
+
+    // Update to ini file
+    updateServerSettingToIniFile();
+}
+
+void MqttClientWidget::on_leUsernam_editingFinished()
+{
+    m_userName = ui->leUsernam->text();
+
+    // Update to ini file
+    updateServerSettingToIniFile();
+}
+
+void MqttClientWidget::on_lePassword_editingFinished()
+{
+    m_password = ui->lePassword->text();
+
+    // Update to ini file
+    updateServerSettingToIniFile();
+}
+
+void MqttClientWidget::on_leKeepAlive_editingFinished()
+{
+    m_keepAliveSecond = ui->leKeepAlive->text().toInt();
+
+    // Update to ini file
+    updateServerSettingToIniFile();
 }

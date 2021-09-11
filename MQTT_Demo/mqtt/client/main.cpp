@@ -1,4 +1,4 @@
-#include "widget.h"
+#include "MqttClientWidget.h"
 #include <QApplication>
 #include <QTextCodec>
 #include <QObject>
@@ -23,8 +23,8 @@ int main(int argc, char *argv[])
 
 #endif
 
-    Widget w;
-    w.setWindowTitle(QString("MQTT调试助手"));
+    MqttClientWidget w;
+    //w.setWindowTitle(QObject::tr("MQTT Client"));
     w.show();
 
     return a.exec();
